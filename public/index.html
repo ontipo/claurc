@@ -1,0 +1,44 @@
+<!-- Formulaire signup -->
+<form id="signup-form" class="active">
+  <div class="row2">
+    <div class="field"><label>Prénom</label><input id="su-firstname" required /></div>
+    <div class="field"><label>Nom</label><input id="su-lastname" required /></div>
+  </div>
+  <div class="row2">
+    <div class="field"><label>Nom d'utilisateur</label><input id="su-username" required /></div>
+    <div class="field"><label>Date de naissance</label><input id="su-birthdate" type="date" required /></div>
+  </div>
+  <div class="field"><label>Email</label><input id="su-email" type="email" required /></div>
+  <div class="field"><label>Mot de passe</label><input id="su-password" type="password" required /></div>
+  <div class="error" id="signup-error"></div>
+  <button class="submit" type="submit">Créer mon compte</button>
+</form>
+
+<!-- Formulaire login -->
+<form id="login-form" class="active">
+  <div class="field">
+    <label>Email ou code membre (7 chiffres)</label>
+    <input id="login-identifier" required />
+  </div>
+  <div class="field"><label>Mot de passe</label><input id="login-password" type="password" required /></div>
+  <div class="error" id="login-error"></div>
+  <button class="submit" type="submit">Se connecter</button>
+  <a href="#" id="forgot-link" style="text-align:center;color:#9a9db2;font-size:12px;">Mot de passe oublié ?</a>
+</form>
+
+<!-- Récupération -->
+<div id="forgot-view" style="display:none;">
+  <h1>Récupérer l'accès</h1>
+  <p class="sub">Importez votre carte de membre (PDF) et entrez votre NIP.</p>
+  <form id="forgot-step1">
+    <div class="field"><label>Carte de membre (.pdf)</label><input id="fg-card" type="file" accept="application/pdf" required /></div>
+    <div class="field"><label>NIP (9 caractères)</label><input id="fg-nip" maxlength="9" required style="text-transform:uppercase" /></div>
+    <div class="error" id="forgot-error"></div>
+    <button class="submit" type="submit">Vérifier</button>
+  </form>
+  <form id="forgot-step2" style="display:none;">
+    <div class="field"><label>Nouveau mot de passe</label><input id="fg-newpass" type="password" required /></div>
+    <div class="error" id="forgot-error2"></div>
+    <button class="submit" type="submit">Réinitialiser et télécharger la nouvelle carte</button>
+  </form>
+</div>
