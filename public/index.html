@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Claurc — Votre identité, partout</title>
+<link rel="icon" href="logo.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12131c; --card:#1a1c29; --card-border:#2a2d3d; --text:#eceef3; --muted:#9a9db2;
+    --arc-gold:#e0a94a; --arc-violet:#7c6ff0; --error:#f2645a;
+    --font-display: "Fraunces", Georgia, serif; --font-body: "Inter", -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:var(--font-body);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background-image: radial-gradient(circle at 20% -10%, rgba(124,111,240,0.18), transparent 45%),
+                       radial-gradient(circle at 90% 10%, rgba(224,169,74,0.14), transparent 40%);
+  }
+  .wrap{ width:100%; max-width:440px; }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:28px; justify-content:center; }
+  .brand img{ width:34px; height:34px; }
+  .brand span{ font-family:var(--font-display); font-size:22px; }
+  .card{ background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:32px 28px; box-shadow:0 20px 60px rgba(0,0,0,0.35); }
+  .tabs{ display:flex; gap:4px; background:#12131c; border:1px solid var(--card-border); border-radius:10px; padding:4px; margin-bottom:24px; }
+  .tabs button{ flex:1; padding:9px 0; border:none; background:transparent; color:var(--muted); font-weight:600; font-size:14px; border-radius:7px; cursor:pointer; }
+  .tabs button.active{ background:var(--arc-violet); color:#fff; }
+  h1{ font-family:var(--font-display); font-size:25px; margin:0 0 6px; font-weight:600; }
+  .sub{ color:var(--muted); font-size:14px; margin:0 0 22px; line-height:1.5; }
+  form{ display:none; flex-direction:column; gap:14px; }
+  form.active{ display:flex; }
+  label{ font-size:13px; color:var(--muted); margin-bottom:6px; display:block; }
+  .field{ display:flex; flex-direction:column; }
+  input{ background:#12131c; border:1px solid var(--card-border); color:var(--text); border-radius:9px; padding:11px 12px; font-size:14px; width:100%; outline:none; }
+  input:focus{ border-color:var(--arc-violet); }
+  input[type="file"]{ padding:9px; font-size:13px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  button.submit{ margin-top:6px; background:var(--arc-gold); color:#1a1305; border:none; border-radius:9px; padding:12px; font-weight:700; font-size:15px; cursor:pointer; }
+  button.submit:disabled{ opacity:0.6; }
+  .error{ color:var(--error); font-size:13px; display:none; line-height:1.4; }
+  .error.show{ display:block; }
+  .hint{ color:var(--muted); font-size:12px; margin-top:-6px; }
+  .link-btn{ background:none; border:none; color:var(--muted); font-size:12px; text-align:center; cursor:pointer; text-decoration:underline; padding:4px 0; }
+  .link-btn:hover{ color:var(--text); }
+  .footer-note{ text-align:center; color:var(--muted); font-size:12px; margin-top:18px; }
+  .sso-banner{ display:none; align-items:center; gap:10px; background:#1f1830; border:1px solid #3a2f5c; border-radius:10px; padding:10px 12px; font-size:13px; color:#cfc6f0; margin-bottom:18px; }
+  .sso-banner.show{ display:flex; }
+  .panel{ display:none; } .panel.active{ display:block; }
+  .success{ text-align:center; padding:20px 0; display:none; } .success.show{ display:block; }
+  .success h2{ font-family:var(--font-display); font-size:20px; margin:10px 0 4px; }
+  .success p{ color:var(--muted); font-size:14px; }
+  .success .icon{ font-size:34px; }
+  .loading{ text-align:center; color:var(--muted); font-size:13px; padding:20px 0; }
+  #logout-btn{ margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><img src="logo.svg" alt="Claurc" /><span>Claurc</span></div>
+
+  <div class="card">
+    <div id="sso-banner" class="sso-banner">🔗 <span id="sso-text"></span></div>
+
+    <div id="panel-checking" class="panel active">
+      <div class="loading">Vérification de votre session…</div>
+    </div>
+
+    <div id="panel-auth" class="panel">
+      <div class="tabs">
+        <button id="tab-login" class="active" onclick="switchTab('login')" type="button">Connexion</button>
+        <button id="tab-signup" onclick="switchTab('signup')" type="button">Créer un compte</button>
+      </div>
+      <div id="login-view">
+        <h1>Content de vous revoir</h1>
+        <p class="sub">Connectez-vous avec votre email ou votre code membre à 7 chiffres.</p>
+        <form id="login-form" class="active">
+          <div class="field"><label>Email ou code membre</label><input id="login-identifier" required autocomplete="username" /></div>
+          <div class="field"><label>Mot de passe</label><input id="login-password" type="password" required autocomplete="current-password" /></div>
+          <div class="error" id="login-error"></div>
+          <button class="submit" type="submit">Se connecter</button>
+          <button type="button" class="link-btn" onclick="goToForgot()">Mot de passe oublié ?</button>
+        </form>
+      </div>
+      <div id="signup-view" style="display:none;">
+        <h1>Créer votre identité Claurc</h1>
+        <p class="sub">Un seul compte, utilisable sur tous les sites partenaires. Une carte de membre PDF vous sera remise.</p>
+        <form id="signup-form" class="active">
+          <div class="row2">
+            <div class="field"><label>Prénom</label><input id="su-firstname" required autocomplete="given-name" /></div>
+            <div class="field"><label>Nom</label><input id="su-lastname" required autocomplete="family-name" /></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Nom d'utilisateur</label><input id="su-username" required autocomplete="username" /></div>
+            <div class="field"><label>Date de naissance</label><input id="su-birthdate" type="date" required /></div>
+          </div>
+          <div class="field"><label>Email</label><input id="su-email" type="email" required autocomplete="email" /></div>
+          <div class="field"><label>Mot de passe</label><input id="su-password" type="password" required autocomplete="new-password" /></div>
+          <div class="hint">8 caractères minimum. Un code membre et un NIP secret seront générés et imprimés sur votre carte.</div>
+          <div class="error" id="signup-error"></div>
+          <button class="submit" type="submit">Créer mon compte et télécharger ma carte</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="panel-forgot" class="panel">
+      <h1>Récupérer l'accès</h1>
+      <p class="sub">Importez votre carte de membre (PDF) et entrez le NIP secret imprimé dessus.</p>
+      <form id="forgot-step1">
+        <div class="field"><label>Carte de membre (.pdf)</label><input id="fg-card" type="file" accept="application/pdf" required /></div>
+        <div class="field"><label>NIP (9 caractères, 0-9 et A-Z)</label><input id="fg-nip" maxlength="9" required style="text-transform:uppercase" /></div>
+        <div class="error" id="forgot-error"></div>
+        <button class="submit" type="submit">Vérifier</button>
+        <button type="button" class="link-btn" onclick="goToLogin()">Retour à la connexion</button>
+      </form>
+      <form id="forgot-step2" style="display:none;">
+        <div class="field"><label>Nouveau mot de passe</label><input id="fg-newpass" type="password" required autocomplete="new-password" /></div>
+        <div class="hint">Une nouvelle carte sera générée avec un nouveau NIP. L'ancienne devient inutilisable.</div>
+        <div class="error" id="forgot-error2"></div>
+        <button class="submit" type="submit">Réinitialiser et télécharger la nouvelle carte</button>
+      </form>
+    </div>
+
+    <div id="success" class="success">
+      <div class="icon">✅</div>
+      <h2 id="success-title">Connexion réussie</h2>
+      <p id="success-text"></p>
+      <button id="logout-btn" class="link-btn" onclick="doLogout()" style="display:none;">Se déconnecter</button>
+    </div>
+  </div>
+  <p class="footer-note">Claurc — une identité, tous les sites partenaires.</p>
+</div>
+
+<script>
+const API_BASE = ""; // même origine (le serveur sert ce fichier et l'API)
+const SESSION_KEY = "claurc_token";
+
+const params = new URLSearchParams(location.search);
+const clientId = params.get("client_id");
+const redirectUri = params.get("redirect_uri");
+const state = params.get("state");
+const isPopupSSO = !!(window.opener && clientId);
+
+function panel(id){
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function switchTab(tab){
+  document.getElementById("tab-login").classList.toggle("active", tab==="login");
+  document.getElementById("tab-signup").classList.toggle("active", tab==="signup");
+  document.getElementById("login-view").style.display = tab==="login" ? "block" : "none";
+  document.getElementById("signup-view").style.display = tab==="signup" ? "block" : "none";
+}
+function goToForgot(){ panel("panel-forgot"); }
+function goToLogin(){
+  panel("panel-auth");
+  document.getElementById("forgot-step1").style.display = "flex";
+  document.getElementById("forgot-step2").style.display = "none";
+}
+function showError(id, msg){ const el=document.getElementById(id); el.textContent=msg; el.classList.add("show"); }
+function clearError(id){ document.getElementById(id).classList.remove("show"); }
+
+function downloadPdfBase64(base64, filename){
+  const bytes = atob(base64);
+  const arr = new Uint8Array(bytes.length);
+  for (let i=0;i<bytes.length;i++) arr[i] = bytes.charCodeAt(i);
+  const blob = new Blob([arr], { type: "application/pdf" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function persist(token, user){
+  localStorage.setItem(SESSION_KEY, token); // localStorage = survit à la fermeture du navigateur
+  localStorage.setItem("claurc_user", JSON.stringify(user));
+}
+
+function onAuthSuccess(token, user, opts = {}){
+  persist(token, user);
+  panel("panel-checking"); // sera remplacé juste après par le succès
+  document.getElementById("panel-checking").classList.remove("active");
+  document.getElementById("success").classList.add("show");
+  document.getElementById("success-title").textContent = opts.title || "Connexion réussie";
+  document.getElementById("success-text").textContent = opts.text || `Bienvenue, ${user.firstName} !`;
+
+  if(isPopupSSO){
+    window.opener.postMessage(
+      { type: "claurc-auth-success", token, user, state },
+      redirectUri ? new URL(redirectUri).origin : "*"
+    );
+    setTimeout(()=>window.close(), 900);
+  } else {
+    document.getElementById("logout-btn").style.display = "inline-block";
+  }
+}
+
+function doLogout(){
+  localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem("claurc_user");
+  location.reload();
+}
+
+/* ---------- Au chargement : reste connecté si un jeton valide existe déjà ---------- */
+(async function checkExistingSession(){
+  if(isPopupSSO){
+    document.getElementById("sso-banner").classList.add("show");
+    document.getElementById("sso-text").textContent = `« ${clientId} » souhaite se connecter avec votre compte Claurc.`;
+  }
+  const token = localStorage.getItem(SESSION_KEY);
+  if(!token){ panel("panel-auth"); return; }
+  try{
+    const res = await fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+    if(!res.ok) throw new Error();
+    const data = await res.json();
+    onAuthSuccess(data.token, data.user, { title: "Déjà connecté", text: `Bon retour, ${data.user.firstName} !` });
+  } catch {
+    localStorage.removeItem(SESSION_KEY);
+    panel("panel-auth");
+  }
+})();
+
+/* ---------- Inscription ---------- */
+document.getElementById("signup-form").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  clearError("signup-error");
+  const body = {
+    firstName: document.getElementById("su-firstname").value.trim(),
+    lastName: document.getElementById("su-lastname").value.trim(),
+    username: document.getElementById("su-username").value.trim(),
+    birthdate: document.getElementById("su-birthdate").value,
+    email: document.getElementById("su-email").value.trim(),
+    password: document.getElementById("su-password").value,
+  };
+  const btn = e.target.querySelector("button.submit");
+  btn.disabled = true;
+  try{
+    const res = await fetch(`${API_BASE}/api/auth/signup`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if(!res.ok) return showError("signup-error", (data.errors || ["Erreur."]).join(" "));
+    downloadPdfBase64(data.cardPdfBase64, "claurc-carte-membre.pdf");
+    onAuthSuccess(data.token, data.user);
+  } finally { btn.disabled = false; }
+});
+
+/* ---------- Connexion ---------- */
+document.getElementById("login-form").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  clearError("login-error");
+  const identifier = document.getElementById("login-identifier").value.trim();
+  const password = document.getElementById("login-password").value;
+  const btn = e.target.querySelector("button.submit");
+  btn.disabled = true;
+  try{
+    const res = await fetch(`${API_BASE}/api/auth/login`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ identifier, password }) });
+    const data = await res.json();
+    if(!res.ok) return showError("login-error", (data.errors || ["Erreur."]).join(" "));
+    onAuthSuccess(data.token, data.user);
+  } finally { btn.disabled = false; }
+});
+
+/* ---------- Mot de passe oublié : étape 1 ---------- */
+document.getElementById("forgot-step1").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  clearError("forgot-error");
+  const fd = new FormData();
+  fd.append("card", document.getElementById("fg-card").files[0]);
+  fd.append("nip", document.getElementById("fg-nip").value.trim());
+  const btn = e.target.querySelector("button.submit");
+  btn.disabled = true;
+  try{
+    const res = await fetch(`${API_BASE}/api/auth/forgot-password/verify`, { method:"POST", body: fd });
+    const data = await res.json();
+    if(!res.ok) return showError("forgot-error", (data.errors || ["Erreur."]).join(" "));
+    window.__resetTicket = data.resetTicket;
+    document.getElementById("forgot-step1").style.display = "none";
+    document.getElementById("forgot-step2").style.display = "flex";
+  } finally { btn.disabled = false; }
+});
+
+/* ---------- Mot de passe oublié : étape 2 ---------- */
+document.getElementById("forgot-step2").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  clearError("forgot-error2");
+  const newPassword = document.getElementById("fg-newpass").value;
+  const btn = e.target.querySelector("button.submit");
+  btn.disabled = true;
+  try{
+    const res = await fetch(`${API_BASE}/api/auth/forgot-password/reset`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ resetTicket: window.__resetTicket, newPassword }),
+    });
+    const data = await res.json();
+    if(!res.ok) return showError("forgot-error2", (data.errors || ["Erreur."]).join(" "));
+    downloadPdfBase64(data.cardPdfBase64, "claurc-nouvelle-carte.pdf");
+    onAuthSuccess(data.token, data.user, { title: "Mot de passe réinitialisé", text: "Votre nouvelle carte a été téléchargée." });
+  } finally { btn.disabled = false; }
+});
+</script>
+</body>
+</html>
