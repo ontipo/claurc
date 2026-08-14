@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Exemple de site partenaire — Connexion avec Claurc</title>
+<style>
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#0e0f16; color:#eceef3;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+  }
+  h1{ font-size:22px; }
+  #user-info{ font-size:15px; color:#9a9db2; }
+  button{
+    background:#e0a94a; color:#1a1305; border:none; border-radius:9px; padding:11px 18px;
+    font-weight:700; font-size:14px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+  <h1>Exemple Boutique — se connecter avec Claurc</h1>
+  <button id="claurc-login-btn-container"></button>
+  <div id="user-info">Non connecté.</div>
+
+  <!--
+    IMPORTANT : remplace AUTH_ORIGIN par l'adresse où tu héberges index.html + claurc-auth.js
+    (ex: https://id.claurc.com). En local, sers les deux dossiers avec un serveur statique
+    (ex: npx serve) car le popup + postMessage ne fonctionnent pas bien en file://.
+  -->
+  <script src="claurc-auth.js"></script>
+  <script>
+    Claurc.init({
+      clientId: "exemple-boutique.com",
+      authOrigin: window.location.origin, // à remplacer par l'URL réelle du domaine Claurc en prod
+      onSuccess: (user, token) => {
+        document.getElementById("user-info").textContent =
+          `Connecté en tant que ${user.firstName} ${user.lastName} (@${user.username})`;
+      },
+      onError: (err) => alert(err.message),
+    });
+    Claurc.renderButton("#claurc-login-btn-container", { label: "Se connecter avec Claurc" });
+
+    if (Claurc.isLoggedIn()) {
+      const u = Claurc.getUser();
+      document.getElementById("user-info").textContent = `Connecté en tant que ${u.firstName} ${u.lastName}`;
+    }
+  </script>
+</body>
+</html>
